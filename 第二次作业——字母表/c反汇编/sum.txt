@@ -1,0 +1,54 @@
+009F1840  push        ebp                    ; 保存调用者的 EBP 值 (栈帧初始化)
+009F1841  mov         ebp,esp                ; 设置当前的 EBP 为 ESP (建立新的栈帧)
+009F1843  sub         esp,0D8h               ; 分配 0xD8 字节的栈空间 (用于局部变量)
+009F1849  push        ebx                    ; 保存 EBX 寄存器值
+009F184A  push        esi                    ; 保存 ESI 寄存器值
+009F184B  push        edi                    ; 保存 EDI 寄存器值
+009F184C  lea         edi,[ebp-18h]          ; 计算局部变量的地址 (栈帧偏移 -0x18)
+009F184F  mov         ecx,6                  ; 设置 ECX 寄存器为 6 (准备初始化 6 个 dword)
+009F1854  mov         eax,0CCCCCCCCh         ; 将 EAX 设为 0xCCCCCCCC (通常用于调试未初始化变量)
+009F1859  rep stos    dword ptr es:[edi]     ; 使用 EAX 值 (0xCCCCCCCC) 初始化 6 个 dword 局部变量
+009F185B  mov         ecx,offset _C0CAFB29_sum1@c (09FC008h)  ; 加载调试器检查的地址
+009F1860  call        @__CheckForDebuggerJustMyCode@4 (09F1316h)  ; 检查是否有调试器附加
+
+    int sum = 0;
+009F1865  mov         dword ptr [sum],0      ; 将局部变量 sum 初始化为 0 (sum = 0)
+    
+    for (int i = 1; i < 101; i++) {
+009F186C  mov         dword ptr [ebp-14h],1  ; 将循环变量 i 初始化为 1 (i = 1)
+009F1873  jmp         __$EncStackInitStart+32h (09F187Eh)  ; 跳转到循环开始判断 i 是否小于 101
+
+009F1875  mov         eax,dword ptr [ebp-14h]  ; 加载 i 的值到 EAX
+009F1878  add         eax,1                   ; i = i + 1 (自增 i)
+009F187B  mov         dword ptr [ebp-14h],eax  ; 更新 i 的值
+
+009F187E  cmp         dword ptr [ebp-14h],65h  ; 比较 i 和 101 (65h = 101) 看 i 是否小于 101
+009F1882  jge         __$EncStackInitStart+43h (09F188Fh)  ; 如果 i >= 101，跳出循环
+
+        sum += i;
+009F1884  mov         eax,dword ptr [sum]      ; 将 sum 的当前值加载到 EAX
+009F1887  add         eax,dword ptr [ebp-14h]  ; 将 i 的值加到 sum 中
+009F188A  mov         dword ptr [sum],eax      ; 将更新后的 sum 值存回内存
+
+    }
+009F188D  jmp         __$EncStackInitStart+29h (09F1875h)  ; 跳回循环顶部，继续下一次循环
+
+    printf("%d", sum);
+009F188F  mov         eax,dword ptr [sum]      ; 将 sum 的最终值加载到 EAX
+009F1892  push        eax                      ; 将 sum 的值压入栈，作为参数传递给 printf
+009F1893  push        offset string "%d" (09F7B30h)  ; 将格式化字符串 "%d" 压入栈
+009F1898  call        _printf (09F10CDh)       ; 调用 printf 函数，输出 sum 的值
+009F189D  add         esp,8                    ; 恢复栈指针 (清除为 printf 压入的参数)
+
+    return 0;
+009F18A0  xor         eax,eax                  ; 设置返回值为 0 (表示正常返回)
+}
+009F18A2  pop         edi                      ; 恢复 EDI 寄存器
+009F18A3  pop         esi                      ; 恢复 ESI 寄存器
+009F18A4  pop         ebx                      ; 恢复 EBX 寄存器
+009F18A5  add         esp,0D8h                 ; 恢复栈空间 (撤销局部变量的栈分配)
+009F18AB  cmp         ebp,esp                  ; 比较 ESP 和 EBP 确保栈平衡
+009F18AD  call        __RTC_CheckEsp (09F123Fh)  ; 调用栈指针检查函数，确保栈没有错误
+009F18B2  mov         esp,ebp                  ; 将 ESP 恢复为 EBP
+009F18B4  pop         ebp                      ; 恢复 EBP 寄存器
+009F18B5  ret                                 ; 返回调用者
